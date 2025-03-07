@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "habitTracker.johnriverz": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\juanj\\Desktop\\HabitTracker"
+    }
+  }
+}
