@@ -45,6 +45,10 @@ string stm = "SELECT * FROM Habits LIMIT 2";
 using var cmd2 = new SQLiteCommand(stm, con);
 
 using SQLiteDataReader rdr = cmd2.ExecuteReader();
+
+// column headers
+Console.WriteLine($"{rdr.GetName(0)} {rdr.GetName(1)} {rdr.GetName(2)}");
+
 while (rdr.Read())
 {
     Console.WriteLine($"{rdr.GetInt32(0)} | {rdr.GetString(1)} | {rdr.GetInt32(2)}");
