@@ -25,3 +25,27 @@ cmd.Parameters.AddWithValue("@count", 0);
 cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
 cmd.Prepare();
 cmd.ExecuteNonQuery();
+
+cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES(@habit, @count, @date)";
+cmd.Parameters.AddWithValue("@habit", "Making bed");
+cmd.Parameters.AddWithValue("@count", 0);
+cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
+cmd.Prepare();
+cmd.ExecuteNonQuery();
+
+cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES(@habit, @count, @date)";
+cmd.Parameters.AddWithValue("@habit", "Going on a walk");
+cmd.Parameters.AddWithValue("@count", 0);
+cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
+cmd.Prepare();
+cmd.ExecuteNonQuery();
+
+string stm = "SELECT * FROM Habits LIMIT 2";
+
+using var cmd2 = new SQLiteCommand(stm, con);
+
+using SQLiteDataReader rdr = cmd2.ExecuteReader();
+while (rdr.Read())
+{
+    Console.WriteLine($"{rdr.GetInt32(0)} | {rdr.GetString(1)} | {rdr.GetInt32(2)}");
+}
