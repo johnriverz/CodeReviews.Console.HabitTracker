@@ -19,28 +19,9 @@ cmd.CommandText=@"
     )";
 cmd.ExecuteNonQuery();
 
-//cmd.CommandText = "SELECT * FROM sqlite_master WHERE type='table'";
-
-//using (var reader = cmd.ExecuteReader())
-//{
-//    while (reader.Read())
-//    {
-//        Console.WriteLine(reader.GetString(1));
-//    }
-//}
-
-cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES('Brush teeth', 0, datetime('now'))";
+cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES(@habit, @count, @date)";
+cmd.Parameters.AddWithValue("@habit", "Brushing teeth");
+cmd.Parameters.AddWithValue("@count", 0);
+cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
+cmd.Prepare();
 cmd.ExecuteNonQuery();
-
-
-cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES('Skincare', 0, datetime('now'))";
-cmd.ExecuteNonQuery();
-
-//cmd.CommandText = "SELECT * FROM Habits";
-//using (var reader = cmd.ExecuteReader())
-//{
-//    while (reader.Read())
-//    {
-//        Console.WriteLine($"{reader.GetInt32(0)}");
-//    }
-//}
