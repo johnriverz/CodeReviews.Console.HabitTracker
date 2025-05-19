@@ -2,7 +2,7 @@
   "profiles": {
     "habitTracker.johnriverz": {
       "commandName": "Project",
-      "console": "externalTerminal",
+      "console": "integratedTerminal",
       "workingDirectory": "C:\\Users\\juanj\\Desktop\\HabitTracker\\habitTracker.johnriverz"
     }
   }
