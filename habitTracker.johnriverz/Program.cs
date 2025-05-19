@@ -1,55 +1,36 @@
-﻿using System.Data.SQLite;
+﻿using Microsoft.Data.Sqlite;
 
-string cs = @"Data Source=habit.db;";
-
-using var con = new SQLiteConnection(cs);
-con.Open();
-
-using var cmd = new SQLiteCommand(con);
-
-cmd.CommandText = "DROP TABLE IF EXISTS Habits";
-cmd.ExecuteNonQuery();
-
-cmd.CommandText=@"
-    CREATE TABLE Habits (
-        id INTEGER PRIMARY KEY,
-        habit TEXT,
-        count INT,
-        date TEXT
-    )";
-cmd.ExecuteNonQuery();
-
-cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES(@habit, @count, @date)";
-cmd.Parameters.AddWithValue("@habit", "Brushing teeth");
-cmd.Parameters.AddWithValue("@count", 0);
-cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
-cmd.Prepare();
-cmd.ExecuteNonQuery();
-
-cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES(@habit, @count, @date)";
-cmd.Parameters.AddWithValue("@habit", "Making bed");
-cmd.Parameters.AddWithValue("@count", 0);
-cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
-cmd.Prepare();
-cmd.ExecuteNonQuery();
-
-cmd.CommandText = "INSERT INTO Habits(habit, count, date) VALUES(@habit, @count, @date)";
-cmd.Parameters.AddWithValue("@habit", "Going on a walk");
-cmd.Parameters.AddWithValue("@count", 0);
-cmd.Parameters.AddWithValue("@date", DateTime.Now.ToShortDateString());
-cmd.Prepare();
-cmd.ExecuteNonQuery();
-
-string stm = "SELECT * FROM Habits LIMIT 2";
-
-using var cmd2 = new SQLiteCommand(stm, con);
-
-using SQLiteDataReader rdr = cmd2.ExecuteReader();
-
-// column headers
-Console.WriteLine($"{rdr.GetName(0)} {rdr.GetName(1)} {rdr.GetName(2)}");
-
-while (rdr.Read())
+namespace habitTracker.johnriverz
 {
-    Console.WriteLine($"{rdr.GetInt32(0)} | {rdr.GetString(1)} | {rdr.GetInt32(2)}");
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // create and connect to database
+            string connectionString = @"Data Source=habit-tracker.db;";
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                // create table
+                var tableCmd = connection.CreateCommand();
+                tableCmd.CommandText = @"CREATE TABLE IF NOT EXISTS habits (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    quantity INTEGER
+                    )";
+
+                tableCmd.ExecuteNonQuery();
+
+                // Verify table exists
+                tableCmd.CommandText = @"SELECT name FROM sqlite_master WHERE type='table' AND name='habits';";
+                var result = tableCmd.ExecuteScalar();
+                Console.WriteLine($"Table exists: {result != null}");
+
+                // close connection
+                connection.Close();
+            }
+        }
+    }
 }
