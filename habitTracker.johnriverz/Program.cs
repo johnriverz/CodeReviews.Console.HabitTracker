@@ -8,7 +8,6 @@ namespace habitTracker.johnriverz
     public class Habit
     {
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public int Quantity { get; set; }
     }
@@ -29,7 +28,6 @@ namespace habitTracker.johnriverz
                 var tableCmd = connection.CreateCommand();
                 tableCmd.CommandText = @"CREATE TABLE IF NOT EXISTS habits (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
                     date TEXT NOT NULL,
                     quantity INTEGER
                     )";
@@ -79,8 +77,8 @@ namespace habitTracker.johnriverz
                         ViewEntries();
                         break;
                     case "2":
-                        // Add entry
-                        Console.WriteLine("Adding entry...");
+                        // Insert entry
+                        Console.WriteLine("Inserting entry...");
                         InsertEntry();
                         break;
                     case "3":
@@ -123,21 +121,11 @@ namespace habitTracker.johnriverz
                     {
                         try
                         {
-                            string dateStr = reader.GetString(2);
-                            // First try to parse as dd-MM-yy
-                            if (!DateTime.TryParseExact(dateStr, "dd-MM-yy", new CultureInfo("en-US"), 
-                                DateTimeStyles.None, out DateTime date))
-                            {
-                                // If that fails, try dd-MM-yyyy
-                                date = DateTime.ParseExact(dateStr, "dd-MM-yyyy", new CultureInfo("en-US"));
-                            }
-
                             tableData.Add(new Habit
                             {
                                 Id = reader.GetInt32(0),
-                                Name = reader.GetString(1),
-                                Date = date,
-                                Quantity = reader.GetInt32(3)
+                                Date = DateTime.ParseExact(reader.GetString(1), "dd-MM-yy", new CultureInfo("en-US")),
+                                Quantity = reader.GetInt32(2)
                             });
                         }
                         catch (Exception ex)
@@ -157,30 +145,19 @@ namespace habitTracker.johnriverz
 
                 if (tableData.Any())
                 {
-                    Console.WriteLine("| ID | Habit | Date       | Quantity |");
-                    Console.WriteLine("|----|------------|------------|----------|");
+                    Console.WriteLine("| ID | Date       | Quantity |");
+                    Console.WriteLine("|----|------------|----------|");
                     foreach (var row in tableData)
                     {
-                        Console.WriteLine($"| {row.Id,-2} | {row.Name,-10} | {row.Date:dd-MM-yyyy} | {row.Quantity,-8} |");
+                        Console.WriteLine($"| {row.Id,-2} | {row.Date:dd-MM-yyyy} | {row.Quantity,-8} |");
                     }
                 }
-
-                Console.WriteLine("\nPress any key to return to main menu...");
-                Console.ReadKey();
-                GetUserInput();
+                Console.WriteLine("\n");
             }   
         }
 
         private static void InsertEntry()
         {
-            Console.WriteLine("Enter habit name: ");
-            string? name = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                Console.WriteLine("Habit name cannot be empty.");
-                return;
-            }
-
             string date = GetDateInput();
             int quantity = GetQuantityInput("Enter the quantity: ");
 
@@ -190,9 +167,8 @@ namespace habitTracker.johnriverz
 
                 var tableCmd = connection.CreateCommand();
                 tableCmd.CommandText = 
-                    @"INSERT INTO habits (name, date, quantity) VALUES (@name, @date, @quantity)";
+                    @"INSERT INTO habits (date, quantity) VALUES (@date, @quantity)";
                 
-                tableCmd.Parameters.AddWithValue("@name", name);
                 tableCmd.Parameters.AddWithValue("@date", date);
                 tableCmd.Parameters.AddWithValue("@quantity", quantity);
 
@@ -202,18 +178,46 @@ namespace habitTracker.johnriverz
             }
         }
 
+        private static void DeleteEntry()
+        {
+            Console.Clear();
+            ViewEntries();
+
+            var recordId = GetQuantityInput("Enter the ID of the record you would like to delete (0 to exit): ");
+
+            if (recordId == 0)
+            {
+                GetUserInput();
+            }
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open(); 
+                var tableCmd = connection.CreateCommand();
+                tableCmd.CommandText = "DELETE from habits WHERE Id = @id";
+                tableCmd.Parameters.AddWithValue("@id", recordId);
+
+                int rowCount = tableCmd.ExecuteNonQuery();
+
+                if (rowCount == 0)
+                {
+                    Console.WriteLine($"Habit (ID: {recordId}) does not exist.");
+                    DeleteEntry();
+                }
+            }
+
+            Console.WriteLine($"Habit (ID: {recordId}) was successfully deleted.");
+            
+            GetUserInput();
+        }
+
         internal static string GetDateInput()
         {
             while (true)
             {
-                Console.WriteLine("Enter the date (dd-mm-yyyy) or 0 to exit to main menu: ");
+                Console.WriteLine("Enter the date (dd-mm-yyyy): ");
 
                 string? input = Console.ReadLine();
-
-                if (input == "0")
-                {
-                    GetUserInput();
-                }
 
                 if (DateTime.TryParseExact(input, "dd-MM-yyyy", new CultureInfo("en-US"), 
                     DateTimeStyles.None, out DateTime date))
