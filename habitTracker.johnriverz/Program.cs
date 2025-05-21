@@ -115,35 +115,28 @@ namespace habitTracker.johnriverz
 
                 SqliteDataReader reader = tableCmd.ExecuteReader();
 
-                if (reader.HasRows)
+                while (reader.Read())
                 {
-                    while (reader.Read())
+                    try
                     {
-                        try
+                        tableData.Add(new Habit
                         {
-                            tableData.Add(new Habit
-                            {
-                                Id = reader.GetInt32(0),
-                                Date = DateTime.ParseExact(reader.GetString(1), "dd-MM-yy", new CultureInfo("en-US")),
-                                Quantity = reader.GetInt32(2)
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error reading row {reader.GetInt32(0)}: {ex.Message}");
-                            continue;
-                        }
+                            Id = reader.GetInt32(0),
+                            Date = DateTime.ParseExact(reader.GetString(1), "dd-MM-yy", new CultureInfo("en-US")),
+                            Quantity = reader.GetInt32(2)
+                        });
                     }
-                }
-                else
-                {
-                    Console.WriteLine("No data found.");
+                    catch (Exception ex)
+                    {
+                        //Console.WriteLine($"Error reading row {reader.GetInt32(0)}: {ex.Message}");
+                        continue;
+                    }
                 }
 
                 reader.Close();
                 connection.Close();
 
-                if (tableData.Any())
+                if (tableData.Count > 0)
                 {
                     Console.WriteLine("| ID | Date       | Quantity |");
                     Console.WriteLine("|----|------------|----------|");
@@ -151,6 +144,10 @@ namespace habitTracker.johnriverz
                     {
                         Console.WriteLine($"| {row.Id,-2} | {row.Date:dd-MM-yyyy} | {row.Quantity,-8} |");
                     }
+                }
+                else
+                {
+                    Console.WriteLine("No data found.");
                 }
                 Console.WriteLine("\n");
             }   
