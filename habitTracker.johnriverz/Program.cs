@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.Data.Sqlite;
+using SQLitePCL;
 
 namespace habitTracker.johnriverz
 {
@@ -86,11 +87,11 @@ namespace habitTracker.johnriverz
                         Console.WriteLine("Deleting entry...");
                         DeleteEntry();
                         break;
-                    // case "4":
-                    //     // Update entry
-                    //     Console.WriteLine("Updating entry...");
-                    //     UpdateEntry();
-                    //     break;
+                    case "4":
+                        // Update entry
+                        Console.WriteLine("Updating entry...");
+                        UpdateEntry();
+                        break;
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
                         break;
@@ -205,6 +206,51 @@ namespace habitTracker.johnriverz
 
             Console.WriteLine($"Habit (ID: {recordId}) was successfully deleted.");
             
+            GetUserInput();
+        }
+
+        internal static void UpdateEntry()
+        {
+            ViewEntries();
+
+            var iD = GetQuantityInput("Enter the ID of the record you would like to update (0 to exit): ");
+
+            if (iD == 0)
+            {
+                GetUserInput();
+                return;
+            }
+
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+
+                // check if exists
+                var checkCmd = connection.CreateCommand();
+                checkCmd.CommandText = "SELECT EXISTS(SELECT 1 FROM habits WHERE Id = @id)";
+                checkCmd.Parameters.AddWithValue("@id", iD);
+                int checkQuery = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (checkQuery == 0)
+                {
+                    Console.WriteLine("Record does not exist.");
+                    GetUserInput();
+                    return;
+                }
+
+                string date = GetDateInput();
+                int quantity = GetQuantityInput("Enter new quantity: ");
+
+                var tableCmd = connection.CreateCommand();
+                tableCmd.CommandText = "UPDATE habits SET date = @date, quantity = @quantity WHERE Id = @id";
+                tableCmd.Parameters.AddWithValue("@date", date);
+                tableCmd.Parameters.AddWithValue("@quantity", quantity);
+                tableCmd.Parameters.AddWithValue("@id", iD);
+
+                tableCmd.ExecuteNonQuery();
+                Console.WriteLine($"Record {iD} has been updated successfully.");
+            }
+
             GetUserInput();
         }
 
